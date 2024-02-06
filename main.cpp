@@ -2,6 +2,7 @@
 #include <map>
 #include <string>
 #include <fstream>
+#include <sstream>
 #include <iomanip>
 using namespace std;
 
@@ -29,6 +30,9 @@ int main() {
     bool run = true;
     do {
         int option;
+
+        while (true) {
+        cout << "\n\n---Search Address Book---" << endl;
         cout << "\n--- Address Book Menu ---" << endl;
         cout << "1. Add Contact" << endl;
         cout << "2. Edit Contact" << endl;
@@ -39,7 +43,14 @@ int main() {
         cout << "Please enter your choice (1-6): ";
         cin >> option;
         cin.ignore();
-
+        if ( option >= 1 && option <= 6) {
+            break;
+        } else {
+            cout << "Invalid input. Please enter a number from 1 to 6." << endl;
+            saveContacts();
+            return 1;
+        }
+        }
         switch (option) {
             case 1:
                 cout << "\n--- Add a New Contact ---" << endl;
@@ -74,11 +85,22 @@ int main() {
     cout << "\nProgram Terminated. All changes have been saved." << endl;
 }
 
-void loadContacts() {
-    ifstream file("contacts.txt");
-    string firstName, lastName, address, phoneNumber, emailAddress;
 
-    while (getline(file, firstName) && getline(file, lastName) && getline(file, address) && getline(file, phoneNumber) && getline(file, emailAddress)) {
+
+void loadContacts() {
+    ifstream file("contacts.csv");
+    string line;
+
+    while (getline(file, line)) {
+        stringstream ss(line);
+        string firstName, lastName, address, phoneNumber, emailAddress;
+
+        getline(ss, firstName, ',');
+        getline(ss, lastName, ',');
+        getline(ss, address, ',');
+        getline(ss, phoneNumber, ',');
+        getline(ss, emailAddress, ',');
+
         Contact contact = {firstName, lastName, address, phoneNumber, emailAddress};
         string key = firstName + " " + lastName;
         addressBook[key] = contact;
@@ -88,15 +110,15 @@ void loadContacts() {
 }
 
 void saveContacts() {
-    ofstream file("contacts.txt");
+    ofstream file("contacts.csv");
 
     for (const auto &pair : addressBook) {
         const Contact &contact = pair.second;
-        file << contact.firstName << endl;
-        file << contact.lastName << endl;
-        file << contact.address << endl;
-        file << contact.phoneNumber << endl;
-        file << contact.emailAddress << endl;
+        file << contact.firstName << ',';
+        file << contact.lastName << ',';
+        file << contact.address << ',';
+        file << contact.phoneNumber << ',';
+        file << contact.emailAddress << '\n';
     }
 
     file.close();
@@ -133,7 +155,7 @@ void addContacts() {
 }
 void viewContacts() {
     cout << left << setw(20) << "First Name" << setw(20) << "Last Name" << setw(20) << "Phone Number" << setw(30) << "Email Address" << setw(30) << "Address" << endl;
-    cout << "-----------------------------------------------------------------------------------------------------------------------------------------------" << endl;
+    cout << "-----------------------------------------------------------------------------------------------------------" << endl;
 
     for (const auto &pair : addressBook) {
         const Contact &contact = pair.second;
@@ -209,12 +231,13 @@ void searchContact() {
                 cout << left << setw(20) << "First Name" << setw(20) << "Last Name" << setw(20) << "Phone Number" << setw(30) << "Email Address" << setw(30) << "Address" << endl;
                 cout << "-----------------------------------------------------------------------------------------------------------------------------------------------" << endl;
                 visited = true;
+                found=false;
             }
             cout << left << setw(20) << contact.firstName << setw(20) << contact.lastName << setw(20) << contact.phoneNumber << setw(30) << contact.emailAddress << setw(30) << contact.address << endl;
         }
     }
 
-    if (!found) {
+    if (!visited) {
         cout << "No matches found." << endl;
     }
 }
@@ -229,7 +252,7 @@ void editContact() {
      string oldKey = firstName + " " + lastName;
     string key = firstName + " " + lastName;
     if (addressBook.find(key) != addressBook.end()) {
-        Contact contact = addressBook[oldKey]; // Copy the contact to be edited
+        Contact contact = addressBook[oldKey]; 
         cout<<"Do you wish to edit the First Name? (Y/N): ";
         cin>>ch;
         cin.ignore();
